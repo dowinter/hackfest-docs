@@ -1,0 +1,44 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaMirrorMaker2
+metadata:
+  name: viada-mirror-maker-2
+  namespace: hackfest2023
+spec:
+  clusters:
+    - alias: kafka-dc
+      bootstrapServers: >-
+        my-cluster-kafka-tls-bootstrap-viada-production.apps.wa6eqszp.uksouth.aroapp.io:443
+      tls:
+        trustedCertificates:
+          - certificate: ca-datacenter.crt
+            secretName: mirror-maker-secrets
+    - alias: kafka-sno
+      bootstrapServers: >-
+        viada-kafka-kafka-tls-bootstrap-hackfest2023.apps.hackfest2023.viada.de:443
+      config:
+        config.storage.replication.factor: -1
+        offset.storage.replication.factor: -1
+        status.storage.replication.factor: -1
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: viada-kafka-cluster-ca-cert
+  connectCluster: kafka-dc
+  mirrors:
+    - checkpointConnector:
+        config:
+          checkpoints.topic.replication.factor: -1
+      groupsPattern: .*
+      heartbeatConnector:
+        config:
+          heartbeats.topic.replication.factor: -1
+      sourceCluster: kafka-sno
+      sourceConnector:
+        config:
+          offset-syncs.topic.replication.factor: -1
+          replication.factor: -1
+          sync.topic.acls.enabled: 'false'
+      targetCluster: kafka-dc
+      topicsPattern: .*
+  replicas: 1
+  version: 3.3.1
