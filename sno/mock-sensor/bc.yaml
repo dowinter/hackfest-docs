@@ -1,0 +1,53 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  annotations:
+    app.openshift.io/vcs-ref: ''
+    app.openshift.io/vcs-uri: 'https://github.com/dowinter/hackfest-mock-sensor.git'
+    openshift.io/generated-by: OpenShiftWebConsole
+  name: hackfest-mock-sensor-git
+  generation: 2
+  namespace: hackfest2023
+  labels:
+    app: hackfest-mock-sensor-git
+    app.kubernetes.io/component: hackfest-mock-sensor-git
+    app.kubernetes.io/instance: hackfest-mock-sensor-git
+    app.kubernetes.io/name: hackfest-mock-sensor-git
+    app.kubernetes.io/part-of: qiot-retail-edgepos-manager-git-app
+    app.openshift.io/runtime: java
+    app.openshift.io/runtime-version: openjdk-17-ubi8
+spec:
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'hackfest-mock-sensor-git:latest'
+  resources: {}
+  successfulBuildsHistoryLimit: 5
+  failedBuildsHistoryLimit: 5
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: 'java:openjdk-17-ubi8'
+  postCommit: {}
+  source:
+    type: Git
+    git:
+      uri: 'https://github.com/dowinter/hackfest-mock-sensor.git'
+    contextDir: /
+  triggers:
+    - type: Generic
+      generic:
+        secretReference:
+          name: hackfest-mock-sensor-git-generic-webhook-secret
+    - type: GitHub
+      github:
+        secretReference:
+          name: hackfest-mock-sensor-git-github-webhook-secret
+    - type: ImageChange
+      imageChange: {}
+    - type: ConfigChange
+  runPolicy: Serial

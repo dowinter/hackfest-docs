@@ -1,0 +1,32 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: kafka-ui
+  namespace: hackfest2023
+  labels:
+    app: kafka-ui
+    app.kubernetes.io/component: kafka-ui
+    app.kubernetes.io/instance: kafka-ui
+    app.kubernetes.io/name: kafka-ui
+    app.kubernetes.io/part-of: qiot-retail-edgepos-manager-git-app
+    app.openshift.io/runtime-version: latest
+  annotations:
+    openshift.io/generated-by: OpenShiftWebConsole
+spec:
+  clusterIP: 172.30.35.9
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - 172.30.35.9
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: kafka-ui
+    deploymentconfig: kafka-ui

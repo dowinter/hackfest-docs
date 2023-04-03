@@ -1,0 +1,85 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+    app.openshift.io/route-disabled: 'false'
+    app.openshift.io/vcs-ref: ''
+    app.openshift.io/vcs-uri: 'https://github.com/dowinter/hackfest-mock-sensor.git'
+    deployment.kubernetes.io/revision: '5'
+    image.openshift.io/triggers: >-
+      [{"from":{"kind":"ImageStreamTag","name":"hackfest-mock-sensor-git:latest","namespace":"hackfest2023"},"fieldPath":"spec.template.spec.containers[?(@.name==\"hackfest-mock-sensor-git\")].image","pause":"false"}]
+    openshift.io/generated-by: OpenShiftWebConsole
+  name: hackfest-mock-sensor-git
+  namespace: hackfest2023
+  labels:
+    app: hackfest-mock-sensor-git
+    app.kubernetes.io/component: hackfest-mock-sensor-git
+    app.kubernetes.io/instance: hackfest-mock-sensor-git
+    app.kubernetes.io/name: hackfest-mock-sensor-git
+    app.kubernetes.io/part-of: qiot-retail-edgepos-manager-git-app
+    app.openshift.io/runtime: java
+    app.openshift.io/runtime-version: openjdk-17-ubi8
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackfest-mock-sensor-git
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hackfest-mock-sensor-git
+        deploymentconfig: hackfest-mock-sensor-git
+    spec:
+      volumes:
+        - name: secret-kafka-volume
+          secret:
+            secretName: viada-kafka-cluster-ca-cert
+            defaultMode: 420
+      containers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: hackfest-mock-sensor-git
+          env:
+            - name: KAFKA_SSL_TRUSTSTORE_LOCATION
+              value: /etc/secret-kafka-volume/ca.p12
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: SSL
+            - name: KAFKA_SSL_TRUSTSTORE_TYPE
+              value: PKCS12
+            - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: viada-kafka-cluster-ca-cert
+                  key: ca.password
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: >-
+                viada-kafka-kafka-tls-bootstrap-hackfest2023.apps.hackfest2023.viada.de:443
+            - name: GENERATOR_DATA_INTERVAL
+              value: 2s
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: secret-kafka-volume
+              readOnly: true
+              mountPath: /etc/secret-kafka-volume
+          terminationMessagePolicy: File
+          image: >-
+            image-registry.openshift-image-registry.svc:5000/hackfest2023/hackfest-mock-sensor-git@sha256:83571622f1df1c346c8a4e242015498e71d7e6a4a490fe12be18fcb2b76ed67d
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

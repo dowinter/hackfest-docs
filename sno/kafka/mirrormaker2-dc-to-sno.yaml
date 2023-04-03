@@ -1,8 +1,10 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaMirrorMaker2
 metadata:
-  name: viada-mirror-maker-2
+  name: viada-dc-to-sno-mirror-maker-2
   namespace: hackfest2023
+  resourceVersion: '1461930'
+  uid: 4f76905c-9eb2-477c-b6f6-9ec1ba8307d7
 spec:
   clusters:
     - alias: kafka-dc
@@ -23,7 +25,7 @@ spec:
         trustedCertificates:
           - certificate: ca.crt
             secretName: viada-kafka-cluster-ca-cert
-  connectCluster: kafka-dc
+  connectCluster: kafka-sno
   mirrors:
     - checkpointConnector:
         config:
@@ -32,13 +34,13 @@ spec:
       heartbeatConnector:
         config:
           heartbeats.topic.replication.factor: -1
-      sourceCluster: kafka-sno
+      sourceCluster: kafka-dc
       sourceConnector:
         config:
           offset-syncs.topic.replication.factor: -1
           replication.factor: -1
           sync.topic.acls.enabled: 'false'
-      targetCluster: kafka-dc
+      targetCluster: kafka-sno
       topicsPattern: .*
   replicas: 1
   version: 3.3.1
